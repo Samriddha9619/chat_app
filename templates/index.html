@@ -233,13 +233,15 @@
             color: #333;
         }
 
-       .messages {
+.messages {
     flex: 1;
     padding: 20px;
     overflow-y: auto;
     background: #f8f9fa;
-    max-height: calc(90vh - 200px); /* Adjust based on your layout */
+    max-height: calc(90vh - 200px);
     min-height: 0;
+    display: flex;
+    flex-direction: column;
 }
 .messages::-webkit-scrollbar {
     width: 8px;
@@ -1213,23 +1215,36 @@ const WS_URL = isDevelopment
     }
 }
 
-        function handleWebSocketMessage(data) {
-            if (data.type === 'new_message') {
-                if (data.chat_room_id === currentChatRoom?.id) {
-                    addMessageToUI(data);
-                }
-                updateChatRoomPreview(data.chat_room_id, data.content);
-            } else if (data.type === 'user_typing') {
-                if (data.chat_room_id === currentChatRoom?.id) {
-                    showTypingIndicator(data.user_name, data.is_typing);
-                }
-            } else if (data.type === 'message_deleted') {
-                if (data.chat_room_id === currentChatRoom?.id) {
-                    removeMessageFromUI(data.message_id);
-                }
-            }
+function handleWebSocketMessage(data) {
+    console.log('📨 Received WebSocket message:', data);
+    
+    if (data.type === 'new_message') {
+        console.log('📨 Processing new message:', data);
+        console.log('📨 Current chat room:', currentChatRoom);
+        console.log('📨 Message room:', data.chat_room_id);
+        
+        if (data.chat_room_id === currentChatRoom?.id) {
+            console.log('✅ Message is for current room, adding to UI');
+            addMessageToUI(data);
+        } else {
+            console.log('⚠️ Message is for different room, ignoring');
         }
-
+        updateChatRoomPreview(data.chat_room_id, data.content);
+    } else if (data.type === 'user_typing') {
+        if (data.chat_room_id === currentChatRoom?.id) {
+            showTypingIndicator(data.user_name, data.is_typing);
+        }
+    } else if (data.type === 'message_deleted') {
+        if (data.chat_room_id === currentChatRoom?.id) {
+            removeMessageFromUI(data.message_id);
+        }
+    } else if (data.type === 'error') {
+        console.error('❌ WebSocket error:', data.message);
+        alert('Error: ' + data.message);
+    } else {
+        console.log('⚠️ Unknown message type:', data.type);
+    }
+}
         async function loadData() {
             if (isAnonymousMode) return;
             await Promise.all([
@@ -1439,10 +1454,11 @@ async function openChat(roomId) {
         `;
     }).join('');
     
-    // Auto-scroll to bottom
     container.scrollTop = container.scrollHeight;
 }
 function addMessageToUI(data) {
+    console.log('🎨 Adding message to UI:', data);
+    
     const container = document.getElementById('messages');
     const isOwn = isAnonymousMode ? 
         (data.anonymous_name === anonymousName) : 
@@ -1451,29 +1467,33 @@ function addMessageToUI(data) {
     const senderName = data.anonymous_name || data.sender_name || 'Unknown';
     const canDelete = isOwn || currentChatRoom?.room_type === 'anonymous';
     
-    // Add 'anonymous' class if in anonymous mode
     const anonymousClass = (isAnonymousMode || currentChatRoom?.room_type === 'anonymous') ? 'anonymous' : '';
     
-    const msgHtml = `
-        <div class="message ${isOwn ? 'own' : ''} ${anonymousClass}" data-message-id="${data.id}">
-            <div class="message-sender">${senderName}</div>
-            <div class="message-bubble">
-                ${data.content}
-                ${canDelete ? `
-                    <div class="message-actions">
-                        <button class="message-action-btn" onclick="showDeleteModal(${data.id})">🗑️</button>
-                    </div>
-                ` : ''}
-            </div>
-            <div class="message-time">${new Date().toLocaleTimeString()}</div>
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `message ${isOwn ? 'own' : ''} ${anonymousClass}`;
+    msgDiv.setAttribute('data-message-id', data.message_id || data.id);
+    
+    msgDiv.innerHTML = `
+        <div class="message-sender">${senderName}</div>
+        <div class="message-bubble">
+            ${data.content}
+            ${canDelete ? `
+                <div class="message-actions">
+                    <button class="message-action-btn" onclick="showDeleteModal(${data.message_id || data.id})">🗑️</button>
+                </div>
+            ` : ''}
         </div>
+        <div class="message-time">${new Date().toLocaleTimeString()}</div>
     `;
     
-    container.innerHTML += msgHtml;
-   
-    container.scrollTop = container.scrollHeight;
-}
-        function removeMessageFromUI(messageId) {
+    container.appendChild(msgDiv);
+    
+    setTimeout(() => {
+        container.scrollTop = container.scrollHeight;
+    }, 10);
+    
+    console.log('✅ Message added to UI');
+}        function removeMessageFromUI(messageId) {
             const messageEl = document.querySelector(`[data-message-id="${messageId}"]`);
             if (messageEl) {
                 messageEl.remove();
