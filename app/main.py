@@ -3,6 +3,8 @@ import django
 import json
 import uuid
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query
+from fastapi.middleware.cors import CORSMiddleware  # ADD THIS IMPORT
+
 from typing import Dict, Optional
 from asgiref.sync import sync_to_async
 
@@ -13,6 +15,19 @@ from django.contrib.auth.models import User
 from app.models import ChatRoom, Message
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:8001",
+        "http://127.0.0.1:8001",
+        "https://chat-app-ekb0.onrender.com",  # Your Django URL
+        "https://chat-app-fastapi.onrender.com",  # Your FastAPI URL
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class ConnectionManager:
     def __init__(self):
