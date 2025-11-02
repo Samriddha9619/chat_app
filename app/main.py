@@ -3,8 +3,7 @@ import django
 import json
 import uuid
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query
-from fastapi.middleware.cors import CORSMiddleware  # ADD THIS IMPORT
-
+from fastapi.middleware.cors import CORSMiddleware
 from typing import Dict, Optional
 from asgiref.sync import sync_to_async
 
@@ -21,8 +20,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:8001",
         "http://127.0.0.1:8001",
-        "https://chat-app-ekb0.onrender.com",  # Your Django URL
-        "https://chat-app-fastapi.onrender.com",  # Your FastAPI URL
+        "https://chat-app-ekb0.onrender.com",
+        "https://chat-app-fastapi.onrender.com",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -35,7 +34,6 @@ class ConnectionManager:
         self.user_to_connection: Dict[int, str] = {}
 
     async def connect(self, websocket: WebSocket, connection_id: str, user_id: Optional[int] = None):
-        #await websocket.accept()
         self.active_connections[connection_id] = websocket
         if user_id:
             self.user_to_connection[user_id] = connection_id
@@ -65,8 +63,6 @@ class ConnectionManager:
 
             if chatroom.room_type == 'anonymous':
                 for conn_id, ws in list(self.active_connections.items()):
-                    if exclude_connection_id and conn_id == exclude_connection_id:
-                        continue
                     if await self.send_to_connection(conn_id, message):
                         sent_count += 1
             else:
@@ -74,8 +70,6 @@ class ConnectionManager:
                 for user in participants:
                     if user.id in self.user_to_connection:
                         conn_id = self.user_to_connection[user.id]
-                        if exclude_connection_id and conn_id == exclude_connection_id:
-                            continue
                         if await self.send_to_connection(conn_id, message):
                             sent_count += 1
 
@@ -134,7 +128,6 @@ async def handle_send_message(websocket: WebSocket, connection_id: str, user_id:
 
             user = await sync_to_async(User.objects.get)(id=user_id)
             
-            # Check if user is participant
             participants = await sync_to_async(list)(chatroom.participants.all())
             if user not in participants:
                 await send_error(websocket, "You're not a participant")
@@ -197,7 +190,6 @@ async def handle_typing_indicator(websocket: WebSocket, connection_id: str, user
 
             user = await sync_to_async(User.objects.get)(id=user_id)
             
-            # Check if user is participant
             participants = await sync_to_async(list)(chatroom.participants.all())
             if user not in participants:
                 return
@@ -245,7 +237,6 @@ async def handle_join_room(websocket: WebSocket, connection_id: str, user_id: Op
 
             user = await sync_to_async(User.objects.get)(id=user_id)
             
-            # Check if user is participant
             participants = await sync_to_async(list)(chatroom.participants.all())
             if user not in participants:
                 return
@@ -313,7 +304,6 @@ async def websocket_endpoint(
         print(f"🔍 Token: {token[:30]}...")
         print(f"🔍 SECRET_KEY exists: {bool(settings.SECRET_KEY)}")
     
-    
         try:
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
             user_id = int(payload.get('user_id'))
@@ -329,7 +319,7 @@ async def websocket_endpoint(
         except Exception as e:
             print(f"❌ Auth error: {e}")
             import traceback
-            traceback.print_exc()  # Print full error
+            traceback.print_exc()
             await websocket.close(code=4001, reason="Authentication failed")
             return
 

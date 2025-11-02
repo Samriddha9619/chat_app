@@ -861,9 +861,15 @@
         </div>
     </div>
 
-    <script>
-const API_URL = 'https://chat-app-ekb0.onrender.com/api';
-const WS_URL = 'wss://chat-app-fastapi.onrender.com/ws';         
+    <script>const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+const API_URL = isDevelopment 
+    ? 'http://localhost:8001/api' 
+    : 'https://chat-app-ekb0.onrender.com/api';
+
+const WS_URL = isDevelopment 
+    ? 'ws://localhost:8000/ws' 
+    : 'wss://chat-app-fastapi.onrender.com/ws';
         let token = localStorage.getItem('token');
         let userId = localStorage.getItem('userId');
         let username = localStorage.getItem('username');
