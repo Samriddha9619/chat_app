@@ -1521,35 +1521,40 @@ function addMessageToUI(data) {
             }
         }
 
-        function sendMessage() {
-            const input = document.getElementById('messageInput');
-            const content = input.value.trim();
-            
-            if (!content || !currentChatRoom) return;
-            
-            const message = {
-                type: 'send_message',
-                chat_room_id: currentChatRoom.id,
-                content: content
-            };
-            
-            if (isAnonymousMode || currentChatRoom.room_type === 'anonymous') {
-                message.anonymous_name = anonymousName || 'Anonymous';
-            }
-            
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify(message));
-                input.value = '';
-            } else {
-                alert('Not connected to chat server. Reconnecting...');
-                if (isAnonymousMode) {
-                    initializeAnonymousWebSocket();
-                } else {
-                    initializeWebSocket();
-                }
-            }
+    function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const content = input.value.trim();
+    
+    if (!content || !currentChatRoom) return;
+    
+    console.log('📤 Sending message:', content);
+    console.log('📤 WebSocket state:', ws.readyState);
+    console.log('📤 Chat room:', currentChatRoom);
+    
+    const message = {
+        type: 'send_message',
+        chat_room_id: currentChatRoom.id,
+        content: content
+    };
+    
+    if (isAnonymousMode || currentChatRoom.room_type === 'anonymous') {
+        message.anonymous_name = anonymousName || 'Anonymous';
+    }
+    
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        console.log('📤 Sending via WebSocket:', message);
+        ws.send(JSON.stringify(message));
+        input.value = '';
+    } else {
+        console.error('❌ WebSocket not open!');
+        alert('Not connected to chat server. Reconnecting...');
+        if (isAnonymousMode) {
+            initializeAnonymousWebSocket();
+        } else {
+            initializeWebSocket();
         }
-
+    }
+}
         function handleTyping(e) {
             if (e.key === 'Enter') {
                 sendMessage();
