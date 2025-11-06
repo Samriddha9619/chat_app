@@ -20,6 +20,9 @@
             justify-content: center;
         }
 
+        .hidden {
+    display: none !important;
+}
         .container {
             background: white;
             border-radius: 20px;
@@ -730,12 +733,11 @@
                     <small id="userStatus">Online</small>
                     <button class="logout-btn" onclick="logout()">Logout</button>
                 </div>
-
-                <div class="tabs">
-                    <div class="tab active" onclick="switchTab('chats')">Chats</div>
-                    <div class="tab" onclick="switchTab('friends')">Friends</div>
-                    <div class="tab" onclick="switchTab('requests')">Requests <span id="requestBadge" class="badge hidden">0</span></div>
-                </div>
+<div class="tabs">
+    <div class="tab active" onclick="switchTab('chats')" id="chatsTabBtn">Chats</div>
+    <div class="tab" onclick="switchTab('friends')" id="friendsTabBtn">Friends</div>
+    <div class="tab" onclick="switchTab('requests')" id="requestsTabBtn">Requests <span id="requestBadge" class="badge hidden">0</span></div>
+</div>
 
                 <div id="chatsTab" class="sidebar-content">
                     <button class="create-chat-btn" onclick="showCreateChatModal()">+ New Chat</button>
@@ -1456,6 +1458,52 @@ async function openChat(roomId) {
     
     container.scrollTop = container.scrollHeight;
 }
+function initializeAnonymousChat() {
+    isAnonymousMode = true;
+    
+    if (!anonymousName || anonymousName === 'null') {
+        anonymousName = `Guest_${Math.random().toString(36).substr(2, 8)}`;
+        localStorage.setItem('anonymous_name', anonymousName);
+    }
+    
+    updateUIForAnonymousMode();
+    
+    document.getElementById('authSection').classList.add('hidden');
+    document.getElementById('mainChatSection').classList.remove('hidden');
+    
+    initializeAnonymousWebSocket();
+    loadAnonymousChatRooms();
+}
+function updateUIForAnonymousMode() {
+    if (isAnonymousMode) {
+        // Hide tab buttons
+        document.getElementById('friendsTabBtn')?.classList.add('hidden');
+        document.getElementById('requestsTabBtn')?.classList.add('hidden');
+        // Hide tab content
+        document.getElementById('friendsTab')?.classList.add('hidden');
+        document.getElementById('requestsTab')?.classList.add('hidden');
+        // Hide other UI elements if needed
+        document.getElementById('userMenu')?.classList.add('hidden');
+        document.getElementById('addFriendBtn')?.classList.add('hidden');
+        const anonymousIndicator = document.getElementById('anonymousIndicator');
+        if (anonymousIndicator) {
+            anonymousIndicator.style.display = 'flex';
+            anonymousIndicator.innerHTML = `🎭 Anonymous - ${anonymousName}`;
+        }
+        document.getElementById('chatsTab')?.click();
+    } else {
+        document.getElementById('friendsTabBtn')?.classList.remove('hidden');
+        document.getElementById('requestsTabBtn')?.classList.remove('hidden');
+        document.getElementById('friendsTab')?.classList.remove('hidden');
+        document.getElementById('requestsTab')?.classList.remove('hidden');
+        document.getElementById('userMenu')?.classList.remove('hidden');
+        document.getElementById('addFriendBtn')?.classList.remove('hidden');
+        const anonymousIndicator = document.getElementById('anonymousIndicator');
+        if (anonymousIndicator) {
+            anonymousIndicator.style.display = 'none';
+        }
+    }
+}
 function addMessageToUI(data) {
     console.log('🎨 Adding message to UI:', data);
     
@@ -1834,32 +1882,82 @@ function addMessageToUI(data) {
             }
         }
 
-        async function leaveChat() {
-            if (!currentChatRoom) return;
-            
-            if (confirm('Are you sure you want to leave this chat?')) {
-                try {
-                    const res = await fetch(`${API_URL}/chatrooms/${currentChatRoom.id}/leave/`, {
-                        method: 'POST',
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    
-                    const data = await res.json();
-                    
-                    if (res.ok) {
-                        currentChatRoom = null;
-                        document.getElementById('chatContainer').classList.add('hidden');
-                        document.getElementById('noChatSelected').classList.remove('hidden');
-                        loadChatRooms();
-                    } else {
-                        alert('Error: ' + data.error);
-                    }
-                } catch (err) {
-                    console.error('Error leaving chat:', err);
-                    alert('Error leaving chat');
-                }
-            }
+async function leaveChat() {
+    if (!currentChatRoom) return;
+    
+    const isAnonymous = currentChatRoom.room_type === 'anonymous' || isAnonymousMode;
+    
+    if (isAnonymous) {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({
+                type: 'leave_room',
+                chat_room_id: currentChatRoom.id
+            }));
         }
+        
+        currentChatRoom = null;
+        document.getElementById('chatContainer').classList.add('hidden');
+        document.getElementById('chatContainer').style.display = 'none';
+        document.getElementById('noChatSelected').style.display = 'flex';
+        
+        if (isAnonymousMode) {
+            backToLogin();
+        }
+        return;
+    }
+    
+    if (!token) {
+        alert('Authentication required');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_URL}/chatrooms/${currentChatRoom.id}/leave/`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'leave_room',
+                    chat_room_id: currentChatRoom.id
+                }));
+            }
+            
+            currentChatRoom = null;
+            document.getElementById('chatContainer').classList.add('hidden');
+            document.getElementById('chatContainer').style.display = 'none';
+            document.getElementById('noChatSelected').style.display = 'flex';
+            loadChatRooms();
+        } else {
+            const data = await response.json();
+            alert('Failed to leave chat: ' + (data.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error leaving chat:', error);
+        alert('Error leaving chat: ' + error.message);
+    }
+}         
+document.addEventListener('DOMContentLoaded', function() {
+    const savedAnonymousMode = localStorage.getItem('isAnonymousMode');
+    
+    if (savedAnonymousMode === 'true') {
+        isAnonymousMode = true;
+        anonymousName = localStorage.getItem('anonymousName');
+        if (anonymousName) {
+            updateUIForAnonymousMode();
+        }
+    }
+    
+    if (token) {
+        updateUIForAnonymousMode();
+    }
+});
+
     </script>
 </body>
 </html>

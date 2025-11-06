@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App · Stay Connected</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --text-dark: #1f2933;
+            --text-light: #6b7280;
+            --bg-light: #f8fafc;
+            --white: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: var(--text-dark);
+            background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(118,75,162,0.1));
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        header {
+            width: 100%;
+            padding: 24px 8%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 1.4rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        nav {
+            display: flex;
+            gap: 28px;
+            font-size: 0.95rem;
+        }
+
+        nav a {
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        nav a:hover { color: var(--primary); }
+
+        .cta-btn {
+            padding: 12px 26px;
+            border-radius: 999px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .cta-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: var(--white);
+            box-shadow: 0 12px 24px rgba(102, 126, 234, 0.25);
+        }
+
+        .cta-primary:hover { transform: translateY(-2px); }
+
+        .hero {
+            padding: 80px 8% 120px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 50px;
+            align-items: center;
+        }
+
+        .hero-text h1 {
+            font-size: clamp(2.5rem, 4vw, 3.5rem);
+            line-height: 1.15;
+            margin-bottom: 20px;
+        }
+
+        .hero-text p {
+            max-width: 520px;
+            font-size: 1.05rem;
+            color: var(--text-light);
+            margin-bottom: 32px;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .hero-meta {
+            margin-top: 40px;
+            display: flex;
+            gap: 30px;
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        .hero-card {
+            position: relative;
+            background: var(--white);
+            border-radius: 28px;
+            padding: 32px;
+            box-shadow: 0 30px 60px rgba(76, 81, 191, 0.18);
+            overflow: hidden;
+        }
+
+        .hero-card::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at top right, rgba(118,75,162,0.18), transparent 55%);
+        }
+
+        .hero-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+        }
+
+        .hero-card ul {
+            list-style: none;
+            color: var(--text-light);
+            line-height: 1.8;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 999px;
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 18px;
+        }
+
+        .section {
+            padding: 0 8% 120px;
+        }
+
+        .section h2 {
+            font-size: 2.2rem;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .section p.section-tagline {
+            color: var(--text-light);
+            max-width: 640px;
+            margin: 0 auto 48px;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 28px;
+        }
+
+        .feature-card {
+            background: var(--white);
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+            border: 1px solid rgba(102,126,234,0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 28px 50px rgba(15, 23, 42, 0.12);
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(102,126,234,0.18), rgba(118,75,162,0.18));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            color: var(--primary);
+            margin-bottom: 18px;
+        }
+
+        .stats {
+            margin: 90px auto;
+            padding: 48px;
+            background: linear-gradient(135deg, rgba(102,126,234,0.12), rgba(118,75,162,0.12));
+            border-radius: 28px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 28px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .cta-section {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: var(--white);
+            border-radius: 28px;
+            padding: 70px 60px;
+            text-align: center;
+            box-shadow: 0 25px 60px rgba(82, 67, 170, 0.35);
+        }
+
+        .cta-section h2 {
+            font-size: 2.4rem;
+            margin-bottom: 18px;
+        }
+
+        .cta-section p {
+            max-width: 540px;
+            margin: 0 auto 32px;
+            font-size: 1.05rem;
+            line-height: 1.6;
+            color: rgba(255,255,255,0.85);
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 0 70px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            nav {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .hero {
+                padding-top: 40px;
+            }
+
+            .hero-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .stats {
+                padding: 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+                <path d="M7 10C7 7.23858 9.23858 5 12 5C14.7614 5 17 7.23858 17 10C17 12.7614 14.7614 15 12 15H8L5 18V10C5 7.79086 6.79086 6 9 6H9.5" stroke="#667eea" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Chat App
+        </div>
+
+        <nav>
+            <a href="#features">Features</a>
+            <a href="#how-it-works">How it works</a>
+            <a href="#security">Security</a>
+            <a href="#contact">Contact</a>
+        </nav>
+
+         <button class="cta-btn cta-primary" onclick="window.location.href='/chat/'">
+            Launch App
+        </button>
+    </header>
+
+    <section class="hero">
+        <div class="hero-text">
+            <span class="pill">💬 Real-time messaging</span>
+            <h1>Conversations that move at the speed of your ideas.</h1>
+            <p>
+                Build meaningful connections with instant messaging, group collaboration, and anonymous rooms – all powered by real-time WebSockets.
+            </p>
+
+            <div class="hero-actions">
+                <button class="cta-btn cta-primary" onclick="window.location.href='/chat/'">Start chatting now</button>
+                <button class="cta-btn" style="background: transparent; border:1px solid rgba(102,126,234,0.35); color: var(--primary);" onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})">
+                    Explore features
+                </button>
+            </div>
+
+            <div class="hero-meta">
+                <span>⚡ Live WebSocket updates</span>
+                <span>🔒 Secure token-based auth</span>
+                <span>🎭 Anonymous chat mode</span>
+            </div>
+        </div>
+
+        <div class="hero-card">
+            <h3>Why teams choose Chat App</h3>
+            <ul>
+                <li>• Instant message delivery with FastAPI WebSockets</li>
+                <li>• Powerful Django REST API backend</li>
+                <li>• Single-page experience built with vanilla JS</li>
+                <li>• Anonymous chat spaces without sign-up</li>
+                <li>• Deployed on Render with Docker pipelines</li>
+            </ul>
+        </div>
+    </section>
+
+    <section class="section" id="features">
+        <h2>Messaging built for modern teams</h2>
+        <p class="section-tagline">
+            Everything you need to connect with friends, teammates, or communities – packaged in a clean, responsive interface.
+        </p>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>Real-time messaging</h3>
+                <p>WebSocket powered delivery keeps every conversation in sync across users without page reloads.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">👥</div>
+                <h3>Private & group chats</h3>
+                <p>Spin up one-on-one conversations or collaborate with entire teams in shared chat rooms.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🎭</div>
+                <h3>Anonymous rooms</h3>
+                <p>Join public, anonymous rooms without creating an account. Pick a nickname and start chatting.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🔔</div>
+                <h3>Typing indicators</h3>
+                <p>Stay in the moment with live typing feedback and real-time message updates for everyone.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🛡️</div>
+                <h3>Secure authentication</h3>
+                <p>JWT-based auth, password hashing, and role-aware access keep conversations safe and private.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📱</div>
+                <h3>Responsive layout</h3>
+                <p>Designed for the modern web with a layout that adapts beautifully to desktops, tablets, and phones.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="how-it-works">
+        <div class="stats">
+            <div>
+                <div class="stat-number">02</div>
+                <div>Dockerized services<br> (Django + FastAPI)</div>
+            </div>
+            <div>
+                <div class="stat-number">03</div>
+                <div>Chat modes<br>(private, group, anonymous)</div>
+            </div>
+            <div>
+                <div class="stat-number">100%</div>
+                <div>WebSocket delivery<br> across all rooms</div>
+            </div>
+            <div>
+                <div class="stat-number">∞</div>
+                <div>Scalable architecture<br> ready for growth</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="security">
+        <div class="cta-section">
+            <h2>Secure. Modern. Ready for production.</h2>
+            <p>
+                Built with Django 4.2, FastAPI, PostgreSQL, and deployed through Docker on Render – this chat platform is engineered for reliability and scale.
+            </p>
+            <button class="cta-btn" style="background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3);" onclick="window.location.href='/chat/'">
+                Jump into the app
+            </button>
+        </div>
+    </section>
+
+    <footer id="contact">
+        Designed & built with care. Questions or feedback? <a href="mailto:your-email@example.com" style="color: var(--primary); text-decoration: none;">Email the creator</a>.
+    </footer>
+</body>
+</html>

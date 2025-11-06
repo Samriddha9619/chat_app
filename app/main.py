@@ -268,6 +268,9 @@ async def handle_message(websocket: WebSocket, connection_id: str, user_id: Opti
             await handle_typing_indicator(websocket, connection_id, user_id, data)
         elif message_type == 'join_room':
             await handle_join_room(websocket, connection_id, user_id, data)
+        elif message_type == 'leave_room':
+            chat_room_id = data.get('chat_room_id')
+            print(f"User leaving room {chat_room_id}")
         else:
             await send_error(websocket, f"Unknown message type: {message_type}")
 
@@ -276,7 +279,6 @@ async def handle_message(websocket: WebSocket, connection_id: str, user_id: Opti
     except Exception as e:
         print(f'Error handling message: {e}')
         await send_error(websocket, "Internal server error")
-
 
 @app.websocket("/ws")
 async def websocket_endpoint(
